@@ -5,7 +5,7 @@
 const char* ap_prefix = "esp";
 const char* ap_password = "cosmicSpace";
 const char* http_username = "cosmic";
-const char* http_password = "cosmic";
+const char* http_password = "cosmicSpace";
 
 
 #endif // CONFIG_H

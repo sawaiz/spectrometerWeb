@@ -105,16 +105,16 @@ int multiConnect(int numTries) {
     File networksFile = SPIFFS.open("/api/networks", "r");
     networksFile.setTimeout(0);
     // // Loop through all the lines of the file, and return the newtork config
-    for (int i = 0; i < 64; i++) {
+    while (true) {
+      // If the line is empty, break
+      if (networksFile.available()==0) {
+        break;
+      } 
       char ssid[32];
       char password[64];
       networksFile.readStringUntil(',').toCharArray(ssid, sizeof(ssid));
       networksFile.readStringUntil('\n').toCharArray(password, sizeof(password));
       wifiMulti.addAP(ssid, password);
-      // If the line is empty, break
-      if (networksFile.available()==0) {
-        break;
-      } 
     }
     networksFile.close();
     for (int i = 0; i < numTries; i++) {
@@ -142,17 +142,17 @@ int checkDuplicate(String newSsid) {
   if (safeOpen("/api/networks", "r") == 0) {
     File networksFile = SPIFFS.open("/api/networks", "r");
     networksFile.setTimeout(0);
-    for (int i = 0; i < 64; i++) {
+    while (true) {
+      // If the line is empty, break
+      if (networksFile.available() == 0) {
+        break;
+      }
       String ssid = networksFile.readStringUntil(',');
       String password = networksFile.readStringUntil('\n');
       if (ssid == newSsid) {
         // If the file already has the exact same SSID, return -1
         networksFile.close();
         return 1;
-      }
-      // If the line is empty, break
-      if (networksFile.available() == 0) {
-        break;
       }
     }
     networksFile.close();
@@ -190,6 +190,10 @@ int removeNetwork(String ssidRm){
     File networksNew = SPIFFS.open("/api/networks~", "w+");
     // Loop though the lines in the file
     while(true){
+      // If the line is empty, break
+      if (networksOld.available() == 0) {
+        break;
+      }
       String ssid = networksOld.readStringUntil(',');
       String password = networksOld.readStringUntil('\n');
       if(ssid != ssidRm){
@@ -197,10 +201,6 @@ int removeNetwork(String ssidRm){
         networksNew.print(",");
         networksNew.print(password);
         networksNew.print("\n");
-      }
-      // If the line is empty, break
-      if (networksOld.available() == 0) {
-        break;
       }
     }
     networksOld.close();
@@ -219,12 +219,13 @@ String knownNetworksJson(){
   if(safeOpen("/api/networks", "r") == 0){
     File networksFile = SPIFFS.open("/api/networks", "r");
     while(true){
+      if (networksFile.available() == 0) {
+        break;
+      }
       json += networksFile.readStringUntil(',');
       networksFile.readStringUntil('\n');
       // If the line is empty, break
-      if (networksFile.available() == 0) {
-        break;
-      } else {
+      if (networksFile.available() != 0) {
         json += ",";
       }
     }
@@ -236,14 +237,14 @@ String knownNetworksJson(){
   return json;
 }
 
-int safeOpen(char* filename, char* type) {
+int safeOpen(char* path, char* mode) {
   // Open the network list files
-  if (SPIFFS.exists(filename)) {
-    File file = SPIFFS.open(filename, type);
+  if (SPIFFS.exists(path)) {
+    File file = SPIFFS.open(path, mode);
     if (!file) {
-      Serial.print(filename);
+      Serial.print(path);
       Serial.print(" could not be opened in ");
-      Serial.print(type);
+      Serial.print(mode);
       Serial.println(" mode");
       return -1;
     } else {
@@ -251,8 +252,10 @@ int safeOpen(char* filename, char* type) {
       return 0;
     }
   } else {
-    Serial.print(filename);
-    Serial.println(" not found");
-    return -1;
+    Serial.print(path);
+    Serial.println(" not found, Creating");
+    File file = SPIFFS.open(path, "w");
+    file.close();
+    return safeOpen(path, mode);
   }
 }

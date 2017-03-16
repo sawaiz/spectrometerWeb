@@ -13,7 +13,7 @@ UPLOAD_VERB ?= -v
 HTTP_ADDR ?= 10.50.0.101
 HTTP_URI ?= /update
 HTTP_USR ?= cosmic
-HTTP_PWD ?= cosmic
+HTTP_PWD ?= cosmicSpace
 
 # SPIFS Directory
 FS_DIR ?= ./data
