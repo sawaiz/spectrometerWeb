@@ -23,6 +23,10 @@ LIBS = $(shell cygpath -m $(LOCALAPPDATA)/Arduino15/packages/esp8266/hardware/es
 
 -include makeEspArduino/makeEspArduino.mk
 
+serial: flash
+	stty -F /dev/ttyS2 cs8 115200 -cread -clocal
+	tio /dev/ttyS2
+
 # % :
 # 	$(warning This is the empty rule. Something went wrong.)
 # 	@true
